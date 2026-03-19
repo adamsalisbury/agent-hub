@@ -22,7 +22,8 @@ public class DashboardController(IAgentRepository agentRepository) : Controller
                 LastCheckedInAt = a.LastCheckedInAt,
                 IsSystemAgent = a.IsSystemAgent,
                 AvatarSvg = a.AvatarSvg,
-                JobTitle = a.JobTitle
+                JobTitle = a.JobTitle,
+                CurrentTask = a.CurrentTask
             }).ToList()
         };
 

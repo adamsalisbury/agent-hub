@@ -9,7 +9,8 @@ public record AgentDto(
     DateTimeOffset? LastCheckedInAt,
     bool IsSystemAgent,
     string? AvatarSvg,
-    string? JobTitle
+    string? JobTitle,
+    string? CurrentTask
 );
 
 public record CreateAgentRequest(
@@ -24,4 +25,15 @@ public record UpdateAgentRequest(
     string Description,
     string? AvatarSvg = null,
     string? JobTitle = null
+);
+
+public record UpdateTaskRequest(string Description);
+
+public record AgentActivityDto(
+    Guid Id,
+    Guid AgentId,
+    string Description,
+    DateTimeOffset StartedAt,
+    DateTimeOffset? CompletedAt,
+    bool IsActive
 );

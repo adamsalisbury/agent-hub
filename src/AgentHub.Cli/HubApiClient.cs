@@ -42,6 +42,23 @@ public class HubApiClient
         return await PostJsonAsync($"api/agents/{agentId}/checkin", new { }, cancellationToken);
     }
 
+    public async Task<JsonElement> SetAgentTaskAsync(Guid agentId, string description, CancellationToken cancellationToken = default)
+    {
+        var payload = new { description };
+        return await PostJsonAsync($"api/agents/{agentId}/task", payload, cancellationToken);
+    }
+
+    public async Task SetAgentIdleAsync(Guid agentId, CancellationToken cancellationToken = default)
+    {
+        var response = await _httpClient.DeleteAsync($"api/agents/{agentId}/task", cancellationToken);
+        await EnsureSuccessAsync(response);
+    }
+
+    public async Task<JsonElement> GetAgentActivitiesAsync(Guid agentId, CancellationToken cancellationToken = default)
+    {
+        return await GetJsonAsync($"api/agents/{agentId}/activities", cancellationToken);
+    }
+
     // --- Messages ---
 
     public async Task<JsonElement> GetInboxAsync(Guid agentId, bool includeRead, CancellationToken cancellationToken = default)

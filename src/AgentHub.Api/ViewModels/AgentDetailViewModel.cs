@@ -6,6 +6,7 @@ public class AgentDetailViewModel
     public IReadOnlyList<MessageSummaryViewModel> Inbox { get; set; } = [];
     public IReadOnlyList<MessageSummaryViewModel> Outbox { get; set; } = [];
     public IReadOnlyList<AgentSummaryViewModel> AllAgents { get; set; } = [];
+    public IReadOnlyList<AgentActivityViewModel> Activities { get; set; } = [];
     public int UnreadCount => Inbox.Count(m => !m.IsRead);
 
     public IReadOnlyList<MessageSummaryViewModel> Conversation =>
@@ -13,6 +14,33 @@ public class AgentDetailViewModel
             .Concat(Outbox.Select(m => m with { IsOutgoing = true }))
             .OrderBy(m => m.SentAt)
             .ToList();
+}
+
+public class AgentActivityViewModel
+{
+    public Guid Id { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public DateTimeOffset StartedAt { get; set; }
+    public DateTimeOffset? CompletedAt { get; set; }
+    public bool IsActive { get; set; }
+
+    public string FormattedDuration
+    {
+        get
+        {
+            var end = CompletedAt ?? DateTimeOffset.UtcNow;
+            var duration = end - StartedAt;
+
+            if (duration.TotalSeconds < 60)
+                return $"{(int)duration.TotalSeconds}s";
+            if (duration.TotalMinutes < 60)
+                return $"{(int)duration.TotalMinutes}m {duration.Seconds}s";
+            if (duration.TotalHours < 24)
+                return $"{(int)duration.TotalHours}h {duration.Minutes}m";
+
+            return $"{(int)duration.TotalDays}d {duration.Hours}h";
+        }
+    }
 }
 
 public record MessageSummaryViewModel

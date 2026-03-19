@@ -82,6 +82,68 @@ agentsCheckinCommand.SetHandler(async (hubUrl, pretty, id) =>
     }
 }, hubUrlOption, prettyOption, checkinIdOption);
 
+// agents task
+var agentsTaskCommand = new Command("task", "Set or update the agent's current task");
+var taskIdOption = new Option<Guid>("--id", "Agent ID") { IsRequired = true };
+var taskDescriptionOption = new Option<string>("--description", "Description of the task being worked on") { IsRequired = true };
+agentsTaskCommand.AddOption(taskIdOption);
+agentsTaskCommand.AddOption(taskDescriptionOption);
+agentsCommand.AddCommand(agentsTaskCommand);
+agentsTaskCommand.SetHandler(async (hubUrl, pretty, id, description) =>
+{
+    try
+    {
+        var client = CreateClient(hubUrl);
+        var result = await client.SetAgentTaskAsync(id, description);
+        OutputFormatter.WriteSuccess(result, pretty);
+    }
+    catch (Exception ex)
+    {
+        OutputFormatter.WriteError(ex.Message, pretty);
+        Environment.Exit(1);
+    }
+}, hubUrlOption, prettyOption, taskIdOption, taskDescriptionOption);
+
+// agents idle
+var agentsIdleCommand = new Command("idle", "Clear the agent's current task (set to idle)");
+var idleIdOption = new Option<Guid>("--id", "Agent ID") { IsRequired = true };
+agentsIdleCommand.AddOption(idleIdOption);
+agentsCommand.AddCommand(agentsIdleCommand);
+agentsIdleCommand.SetHandler(async (hubUrl, pretty, id) =>
+{
+    try
+    {
+        var client = CreateClient(hubUrl);
+        await client.SetAgentIdleAsync(id);
+        OutputFormatter.WriteMessage("Agent is now idle.", pretty);
+    }
+    catch (Exception ex)
+    {
+        OutputFormatter.WriteError(ex.Message, pretty);
+        Environment.Exit(1);
+    }
+}, hubUrlOption, prettyOption, idleIdOption);
+
+// agents activities
+var agentsActivitiesCommand = new Command("activities", "View the activity history for an agent");
+var activitiesIdOption = new Option<Guid>("--id", "Agent ID") { IsRequired = true };
+agentsActivitiesCommand.AddOption(activitiesIdOption);
+agentsCommand.AddCommand(agentsActivitiesCommand);
+agentsActivitiesCommand.SetHandler(async (hubUrl, pretty, id) =>
+{
+    try
+    {
+        var client = CreateClient(hubUrl);
+        var result = await client.GetAgentActivitiesAsync(id);
+        OutputFormatter.WriteSuccess(result, pretty);
+    }
+    catch (Exception ex)
+    {
+        OutputFormatter.WriteError(ex.Message, pretty);
+        Environment.Exit(1);
+    }
+}, hubUrlOption, prettyOption, activitiesIdOption);
+
 // ── messages ──────────────────────────────────────────────────────────────────
 var messagesCommand = new Command("messages", "Manage messages");
 rootCommand.AddCommand(messagesCommand);

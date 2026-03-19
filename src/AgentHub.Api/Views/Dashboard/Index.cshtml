@@ -84,6 +84,7 @@
                                 <th>Status</th>
                                 <th>Name</th>
                                 <th>Description</th>
+                                <th>Current Task</th>
                                 <th>Last Check-In</th>
                                 <th></th>
                             </tr>
@@ -131,6 +132,18 @@
                                         </div>
                                     </td>
                                     <td class="text-muted">@agent.Description</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(agent.CurrentTask))
+                                        {
+                                            <span class="badge bg-info text-dark">
+                                                <i class="bi bi-activity me-1"></i>@agent.CurrentTask
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">Idle</span>
+                                        }
+                                    </td>
                                     <td class="text-muted small">
                                         @(agent.LastCheckedInAt.HasValue
                                             ? agent.LastCheckedInAt.Value.ToLocalTime().ToString("g")

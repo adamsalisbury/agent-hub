@@ -18,7 +18,20 @@ public static class AgentMappingExtensions
             LastCheckedInAt: agent.LastCheckedInAt,
             IsSystemAgent: agent.IsSystemAgent,
             AvatarSvg: agent.AvatarSvg,
-            JobTitle: agent.JobTitle
+            JobTitle: agent.JobTitle,
+            CurrentTask: agent.CurrentTask
+        );
+    }
+
+    public static AgentActivityDto ToDto(this AgentActivity activity)
+    {
+        return new AgentActivityDto(
+            Id: activity.Id,
+            AgentId: activity.AgentId,
+            Description: activity.Description,
+            StartedAt: activity.StartedAt,
+            CompletedAt: activity.CompletedAt,
+            IsActive: activity.IsActive
         );
     }
 }

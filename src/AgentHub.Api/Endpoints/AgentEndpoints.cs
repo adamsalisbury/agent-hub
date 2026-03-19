@@ -5,6 +5,7 @@ using AgentHub.Core.Interfaces;
 
 namespace AgentHub.Api.Endpoints;
 
+
 public static class AgentEndpoints
 {
     public static RouteGroupBuilder MapAgentEndpoints(this IEndpointRouteBuilder routes)
@@ -132,6 +133,90 @@ public static class AgentEndpoints
         })
         .WithName("GetAgentByName")
         .WithSummary("Get an agent by name");
+
+        group.MapPost("/{id:guid}/task", async (
+            Guid id,
+            UpdateTaskRequest request,
+            IAgentRepository agentRepository,
+            IAgentActivityRepository activityRepository,
+            CancellationToken cancellationToken) =>
+        {
+            var agent = await agentRepository.GetByIdAsync(id, cancellationToken);
+            if (agent is null) return Results.NotFound();
+
+            if (string.IsNullOrWhiteSpace(request.Description))
+                return Results.BadRequest("Task description is required.");
+
+            // Complete any currently active task
+            var activeActivity = await activityRepository.GetActiveByAgentIdAsync(id, cancellationToken);
+            if (activeActivity is not null)
+            {
+                activeActivity.CompletedAt = DateTimeOffset.UtcNow;
+                activeActivity.IsActive = false;
+                await activityRepository.UpdateAsync(activeActivity, cancellationToken);
+            }
+
+            // Create the new activity
+            var newActivity = new AgentActivity
+            {
+                Id = Guid.NewGuid(),
+                AgentId = id,
+                Description = request.Description,
+                StartedAt = DateTimeOffset.UtcNow,
+                IsActive = true
+            };
+            var created = await activityRepository.CreateAsync(newActivity, cancellationToken);
+
+            // Update the agent's quick-access current task field
+            agent.CurrentTask = request.Description;
+            await agentRepository.UpdateAsync(agent, cancellationToken);
+
+            return Results.Ok(created.ToDto());
+        })
+        .WithName("SetAgentTask")
+        .WithSummary("Start or update the agent's current task");
+
+        group.MapDelete("/{id:guid}/task", async (
+            Guid id,
+            IAgentRepository agentRepository,
+            IAgentActivityRepository activityRepository,
+            CancellationToken cancellationToken) =>
+        {
+            var agent = await agentRepository.GetByIdAsync(id, cancellationToken);
+            if (agent is null) return Results.NotFound();
+
+            // Complete the active task if one exists (idempotent — no error if none)
+            var activeActivity = await activityRepository.GetActiveByAgentIdAsync(id, cancellationToken);
+            if (activeActivity is not null)
+            {
+                activeActivity.CompletedAt = DateTimeOffset.UtcNow;
+                activeActivity.IsActive = false;
+                await activityRepository.UpdateAsync(activeActivity, cancellationToken);
+            }
+
+            // Clear the agent's quick-access current task field
+            agent.CurrentTask = null;
+            await agentRepository.UpdateAsync(agent, cancellationToken);
+
+            return Results.NoContent();
+        })
+        .WithName("ClearAgentTask")
+        .WithSummary("Complete the agent's current task and set it to idle");
+
+        group.MapGet("/{id:guid}/activities", async (
+            Guid id,
+            IAgentRepository agentRepository,
+            IAgentActivityRepository activityRepository,
+            CancellationToken cancellationToken) =>
+        {
+            var agent = await agentRepository.GetByIdAsync(id, cancellationToken);
+            if (agent is null) return Results.NotFound();
+
+            var activities = await activityRepository.GetByAgentIdAsync(id, cancellationToken);
+            return Results.Ok(activities.Select(a => a.ToDto()));
+        })
+        .WithName("GetAgentActivities")
+        .WithSummary("Get the full activity history for an agent");
 
         return group;
     }

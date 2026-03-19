@@ -37,10 +37,17 @@ public static class ServiceExtensions
             return new JsonFileStore<Attachment>(options.DataDirectory, "attachments.json");
         });
 
+        services.AddSingleton(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<JsonStoreOptions>>().Value;
+            return new JsonFileStore<AgentActivity>(options.DataDirectory, "activities.json");
+        });
+
         // Register repositories
         services.AddScoped<IAgentRepository, AgentRepository>();
         services.AddScoped<IMessageRepository, MessageRepository>();
         services.AddScoped<IAttachmentRepository, AttachmentRepository>();
+        services.AddScoped<IAgentActivityRepository, AgentActivityRepository>();
 
         return services;
     }

@@ -8,7 +8,8 @@ namespace AgentHub.Api.Controllers;
 
 public class AgentsController(
     IAgentRepository agentRepository,
-    IMessageRepository messageRepository) : Controller
+    IMessageRepository messageRepository,
+    IAgentActivityRepository activityRepository) : Controller
 {
     public async Task<IActionResult> Detail(Guid id, CancellationToken cancellationToken)
     {
@@ -18,6 +19,7 @@ public class AgentsController(
         var inbox = await messageRepository.GetInboxAsync(id, includeRead: true, cancellationToken);
         var outbox = await messageRepository.GetOutboxAsync(id, cancellationToken);
         var allAgents = await agentRepository.GetAllAsync(cancellationToken);
+        var activities = await activityRepository.GetByAgentIdAsync(id, cancellationToken);
 
         var viewModel = new AgentDetailViewModel
         {
@@ -30,7 +32,8 @@ public class AgentsController(
                 LastCheckedInAt = agent.LastCheckedInAt,
                 IsSystemAgent = agent.IsSystemAgent,
                 AvatarSvg = agent.AvatarSvg,
-                JobTitle = agent.JobTitle
+                JobTitle = agent.JobTitle,
+                CurrentTask = agent.CurrentTask
             },
             Inbox = inbox.Select(m => new MessageSummaryViewModel
             {
@@ -63,7 +66,16 @@ public class AgentsController(
                 LastCheckedInAt = a.LastCheckedInAt,
                 IsSystemAgent = a.IsSystemAgent,
                 AvatarSvg = a.AvatarSvg,
-                JobTitle = a.JobTitle
+                JobTitle = a.JobTitle,
+                CurrentTask = a.CurrentTask
+            }).ToList(),
+            Activities = activities.Select(a => new AgentActivityViewModel
+            {
+                Id = a.Id,
+                Description = a.Description,
+                StartedAt = a.StartedAt,
+                CompletedAt = a.CompletedAt,
+                IsActive = a.IsActive
             }).ToList()
         };
 

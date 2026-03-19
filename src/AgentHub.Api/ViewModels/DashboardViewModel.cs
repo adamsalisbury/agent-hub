@@ -19,4 +19,5 @@ public class AgentSummaryViewModel
     public bool IsSystemAgent { get; set; }
     public string? AvatarSvg { get; set; }
     public string? JobTitle { get; set; }
+    public string? CurrentTask { get; set; }
 }
