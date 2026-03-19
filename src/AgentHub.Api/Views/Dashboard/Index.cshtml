@@ -84,6 +84,7 @@
                                 <th>Status</th>
                                 <th>Name</th>
                                 <th>Description</th>
+                                <th>Skills</th>
                                 <th>Current Task</th>
                                 <th>Last Check-In</th>
                                 <th></th>
@@ -132,6 +133,16 @@
                                         </div>
                                     </td>
                                     <td class="text-muted">@agent.Description</td>
+                                    <td>
+                                        @if (agent.SkillCount > 0)
+                                        {
+                                            <span class="badge bg-primary">@agent.SkillCount skill@(agent.SkillCount != 1 ? "s" : "")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">None</span>
+                                        }
+                                    </td>
                                     <td>
                                         @if (!string.IsNullOrEmpty(agent.CurrentTask))
                                         {

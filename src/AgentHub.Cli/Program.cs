@@ -144,6 +144,48 @@ agentsActivitiesCommand.SetHandler(async (hubUrl, pretty, id) =>
     }
 }, hubUrlOption, prettyOption, activitiesIdOption);
 
+// agents skills
+var agentsSkillsCommand = new Command("skills", "List skills for an agent");
+var skillsIdOption = new Option<Guid>("--id", "Agent ID") { IsRequired = true };
+agentsSkillsCommand.AddOption(skillsIdOption);
+agentsCommand.AddCommand(agentsSkillsCommand);
+agentsSkillsCommand.SetHandler(async (hubUrl, pretty, id) =>
+{
+    try
+    {
+        var client = CreateClient(hubUrl);
+        var result = await client.GetAgentSkillsAsync(id);
+        OutputFormatter.WriteSuccess(result, pretty);
+    }
+    catch (Exception ex)
+    {
+        OutputFormatter.WriteError(ex.Message, pretty);
+        Environment.Exit(1);
+    }
+}, hubUrlOption, prettyOption, skillsIdOption);
+
+// agents set-skills
+var agentsSetSkillsCommand = new Command("set-skills", "Replace all skills for an agent");
+var setSkillsIdOption = new Option<Guid>("--id", "Agent ID") { IsRequired = true };
+var setSkillsJsonOption = new Option<string>("--json", "Skills as a JSON array, e.g. '[{\"name\":\"x\",\"description\":\"y\"}]'") { IsRequired = true };
+agentsSetSkillsCommand.AddOption(setSkillsIdOption);
+agentsSetSkillsCommand.AddOption(setSkillsJsonOption);
+agentsCommand.AddCommand(agentsSetSkillsCommand);
+agentsSetSkillsCommand.SetHandler(async (hubUrl, pretty, id, json) =>
+{
+    try
+    {
+        var client = CreateClient(hubUrl);
+        var result = await client.SetAgentSkillsAsync(id, json);
+        OutputFormatter.WriteSuccess(result, pretty);
+    }
+    catch (Exception ex)
+    {
+        OutputFormatter.WriteError(ex.Message, pretty);
+        Environment.Exit(1);
+    }
+}, hubUrlOption, prettyOption, setSkillsIdOption, setSkillsJsonOption);
+
 // ── messages ──────────────────────────────────────────────────────────────────
 var messagesCommand = new Command("messages", "Manage messages");
 rootCommand.AddCommand(messagesCommand);

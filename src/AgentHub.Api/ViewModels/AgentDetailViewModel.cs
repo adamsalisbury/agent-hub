@@ -1,3 +1,5 @@
+using AgentHub.Api.Models;
+
 namespace AgentHub.Api.ViewModels;
 
 public class AgentDetailViewModel
@@ -7,6 +9,7 @@ public class AgentDetailViewModel
     public IReadOnlyList<MessageSummaryViewModel> Outbox { get; set; } = [];
     public IReadOnlyList<AgentSummaryViewModel> AllAgents { get; set; } = [];
     public IReadOnlyList<AgentActivityViewModel> Activities { get; set; } = [];
+    public IReadOnlyList<AgentSkillDto> Skills { get; set; } = [];
     public int UnreadCount => Inbox.Count(m => !m.IsRead);
 
     public IReadOnlyList<MessageSummaryViewModel> Conversation =>

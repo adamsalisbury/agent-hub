@@ -1,3 +1,4 @@
+using AgentHub.Api.Models;
 using AgentHub.Api.ViewModels;
 using AgentHub.Core.Entities;
 using AgentHub.Core.Interfaces;
@@ -76,7 +77,8 @@ public class AgentsController(
                 StartedAt = a.StartedAt,
                 CompletedAt = a.CompletedAt,
                 IsActive = a.IsActive
-            }).ToList()
+            }).ToList(),
+            Skills = agent.Skills.Select(s => new AgentSkillDto(s.Name, s.Description)).ToList()
         };
 
         return View(viewModel);
@@ -113,6 +115,85 @@ public class AgentsController(
         await agentRepository.CreateAsync(agent, cancellationToken);
         TempData["Success"] = $"Agent '{name}' registered successfully.";
         return RedirectToAction("Detail", new { id = agent.Id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SendConfigAddSkill(
+        Guid id,
+        string skillName,
+        string skillMarkdown,
+        CancellationToken cancellationToken)
+    {
+        var agent = await agentRepository.GetByIdAsync(id, cancellationToken);
+        if (agent is null) return NotFound();
+
+        var allAgents = await agentRepository.GetAllAsync(cancellationToken);
+        var systemAgent = allAgents.FirstOrDefault(a => a.IsSystemAgent);
+        if (systemAgent is null)
+        {
+            TempData["Error"] = "System agent not found. Cannot send config message.";
+            return RedirectToAction("Detail", new { id });
+        }
+
+        var body = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            skillName,
+            skillMarkdown
+        });
+
+        var message = new Message
+        {
+            Id = Guid.NewGuid(),
+            SenderId = systemAgent.Id,
+            RecipientId = id,
+            Subject = "CONFIG:add-skill",
+            Body = body,
+            IsBroadcast = false,
+            IsRead = false,
+            SentAt = DateTimeOffset.UtcNow
+        };
+
+        await messageRepository.CreateAsync(message, cancellationToken);
+        TempData["Success"] = $"Config message sent to add skill '{skillName}'.";
+        return RedirectToAction("Detail", new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SendConfigRemoveSkill(
+        Guid id,
+        string skillName,
+        CancellationToken cancellationToken)
+    {
+        var agent = await agentRepository.GetByIdAsync(id, cancellationToken);
+        if (agent is null) return NotFound();
+
+        var allAgents = await agentRepository.GetAllAsync(cancellationToken);
+        var systemAgent = allAgents.FirstOrDefault(a => a.IsSystemAgent);
+        if (systemAgent is null)
+        {
+            TempData["Error"] = "System agent not found. Cannot send config message.";
+            return RedirectToAction("Detail", new { id });
+        }
+
+        var body = System.Text.Json.JsonSerializer.Serialize(new { skillName });
+
+        var message = new Message
+        {
+            Id = Guid.NewGuid(),
+            SenderId = systemAgent.Id,
+            RecipientId = id,
+            Subject = "CONFIG:remove-skill",
+            Body = body,
+            IsBroadcast = false,
+            IsRead = false,
+            SentAt = DateTimeOffset.UtcNow
+        };
+
+        await messageRepository.CreateAsync(message, cancellationToken);
+        TempData["Success"] = $"Config message sent to remove skill '{skillName}'.";
+        return RedirectToAction("Detail", new { id });
     }
 
     [HttpPost]

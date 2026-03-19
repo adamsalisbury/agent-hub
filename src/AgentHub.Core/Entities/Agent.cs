@@ -15,6 +15,8 @@ public class Agent
     public string? JobTitle { get; set; }
     public string? CurrentTask { get; set; }
 
+    public List<AgentSkill> Skills { get; set; } = [];
+
     [JsonIgnore]
     public ICollection<Message> SentMessages { get; set; } = [];
 

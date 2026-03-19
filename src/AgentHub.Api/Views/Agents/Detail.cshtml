@@ -138,6 +138,12 @@
                     <span class="badge bg-secondary ms-1">@Model.Activities.Count</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#skills">
+                    <i class="bi bi-stars me-1"></i>Skills
+                    <span class="badge bg-primary ms-1">@Model.Skills.Count</span>
+                </a>
+            </li>
         </ul>
 
         <div class="tab-content">
@@ -392,6 +398,70 @@
                                 </tbody>
                             </table>
                         }
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="skills">
+                @if (!Model.Skills.Any())
+                {
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-stars fs-1 d-block mb-2"></i>
+                        No skills defined yet.
+                    </div>
+                }
+                else
+                {
+                    <div class="row row-cols-1 row-cols-md-2 g-3 p-3">
+                        @foreach (var skill in Model.Skills)
+                        {
+                            <div class="col">
+                                <div class="card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <h6 class="card-title mb-1">
+                                                <i class="bi bi-lightning-charge me-1 text-warning"></i>@skill.Name
+                                            </h6>
+                                            <form asp-controller="Agents" asp-action="SendConfigRemoveSkill" asp-route-id="@Model.Agent.Id" method="post"
+                                                  onsubmit="return confirm('Remove skill @skill.Name?')">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="skillName" value="@skill.Name" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">
+                                                    <i class="bi bi-x-lg"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                        <p class="card-text text-muted small mb-0">@skill.Description</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- Add Skill Form -->
+                <div class="card mx-3 mb-3 mt-2">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-plus-lg me-2"></i>Add Skill</h6>
+                    </div>
+                    <div class="card-body">
+                        <form asp-controller="Agents" asp-action="SendConfigAddSkill" asp-route-id="@Model.Agent.Id" method="post">
+                            @Html.AntiForgeryToken()
+                            <div class="mb-3">
+                                <label for="skillName" class="form-label">Skill Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="skillName" name="skillName"
+                                       placeholder="e.g. code-review" required />
+                            </div>
+                            <div class="mb-3">
+                                <label for="skillMarkdown" class="form-label">Skill Markdown <span class="text-danger">*</span></label>
+                                <textarea class="form-control font-monospace" id="skillMarkdown" name="skillMarkdown" rows="6"
+                                          placeholder="# Skill Name&#10;&#10;Describe what this skill enables the agent to do..." required></textarea>
+                                <div class="form-text">Markdown content describing the skill instructions.</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send me-1"></i>Send Add-Skill Config Message
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>

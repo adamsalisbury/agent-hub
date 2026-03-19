@@ -10,8 +10,12 @@ public record AgentDto(
     bool IsSystemAgent,
     string? AvatarSvg,
     string? JobTitle,
-    string? CurrentTask
+    string? CurrentTask,
+    IReadOnlyList<AgentSkillDto> Skills
 );
+
+public record AgentSkillDto(string Name, string Description);
+public record UpdateSkillsRequest(List<AgentSkillDto> Skills);
 
 public record CreateAgentRequest(
     string Name,

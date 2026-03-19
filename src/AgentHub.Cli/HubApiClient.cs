@@ -59,6 +59,21 @@ public class HubApiClient
         return await GetJsonAsync($"api/agents/{agentId}/activities", cancellationToken);
     }
 
+    public async Task<JsonElement> GetAgentSkillsAsync(Guid agentId, CancellationToken cancellationToken = default)
+    {
+        return await GetJsonAsync($"api/agents/{agentId}/skills", cancellationToken);
+    }
+
+    public async Task<JsonElement> SetAgentSkillsAsync(Guid agentId, string skillsJson, CancellationToken cancellationToken = default)
+    {
+        var skills = JsonSerializer.Deserialize<JsonElement>(skillsJson, SerializerOptions);
+        var payload = new { skills };
+        var response = await _httpClient.PutAsJsonAsync($"api/agents/{agentId}/skills", payload, SerializerOptions, cancellationToken);
+        await EnsureSuccessAsync(response);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken);
+        return JsonSerializer.Deserialize<JsonElement>(json, SerializerOptions);
+    }
+
     // --- Messages ---
 
     public async Task<JsonElement> GetInboxAsync(Guid agentId, bool includeRead, CancellationToken cancellationToken = default)

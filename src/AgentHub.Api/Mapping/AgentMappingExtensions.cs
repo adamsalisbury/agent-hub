@@ -19,7 +19,8 @@ public static class AgentMappingExtensions
             IsSystemAgent: agent.IsSystemAgent,
             AvatarSvg: agent.AvatarSvg,
             JobTitle: agent.JobTitle,
-            CurrentTask: agent.CurrentTask
+            CurrentTask: agent.CurrentTask,
+            Skills: agent.Skills.Select(s => new AgentSkillDto(s.Name, s.Description)).ToList()
         );
     }
 

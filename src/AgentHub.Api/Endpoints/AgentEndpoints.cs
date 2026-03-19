@@ -203,6 +203,32 @@ public static class AgentEndpoints
         .WithName("ClearAgentTask")
         .WithSummary("Complete the agent's current task and set it to idle");
 
+        group.MapGet("/{id:guid}/skills", async (Guid id, IAgentRepository repository, CancellationToken cancellationToken) =>
+        {
+            var agent = await repository.GetByIdAsync(id, cancellationToken);
+            if (agent is null) return Results.NotFound();
+            return Results.Ok(agent.Skills.Select(s => new AgentSkillDto(s.Name, s.Description)));
+        })
+        .WithName("GetAgentSkills")
+        .WithSummary("List an agent's skills");
+
+        group.MapPut("/{id:guid}/skills", async (Guid id, UpdateSkillsRequest request, IAgentRepository repository, CancellationToken cancellationToken) =>
+        {
+            var agent = await repository.GetByIdAsync(id, cancellationToken);
+            if (agent is null) return Results.NotFound();
+
+            agent.Skills = request.Skills.Select(s => new AgentSkill
+            {
+                Name = s.Name,
+                Description = s.Description
+            }).ToList();
+
+            await repository.UpdateAsync(agent, cancellationToken);
+            return Results.Ok(agent.Skills.Select(s => new AgentSkillDto(s.Name, s.Description)));
+        })
+        .WithName("UpdateAgentSkills")
+        .WithSummary("Replace all skills for an agent");
+
         group.MapGet("/{id:guid}/activities", async (
             Guid id,
             IAgentRepository agentRepository,

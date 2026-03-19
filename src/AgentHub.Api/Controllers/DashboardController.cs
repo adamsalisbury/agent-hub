@@ -23,7 +23,8 @@ public class DashboardController(IAgentRepository agentRepository) : Controller
                 IsSystemAgent = a.IsSystemAgent,
                 AvatarSvg = a.AvatarSvg,
                 JobTitle = a.JobTitle,
-                CurrentTask = a.CurrentTask
+                CurrentTask = a.CurrentTask,
+                SkillCount = a.Skills.Count
             }).ToList()
         };
 

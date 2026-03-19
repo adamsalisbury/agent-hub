@@ -20,4 +20,5 @@ public class AgentSummaryViewModel
     public string? AvatarSvg { get; set; }
     public string? JobTitle { get; set; }
     public string? CurrentTask { get; set; }
+    public int SkillCount { get; set; }
 }
