@@ -1,0 +1,17 @@
+services:
+  agent-hub:
+    build: .
+    image: agent-hub:latest
+    container_name: agent-hub
+    ports:
+      - "5050:5050"   # API
+      - "5060:5060"   # Web Frontend
+    volumes:
+      - ./host-data:/app/data             # JSON data files (agents, messages, attachments metadata)
+      - ./host-attachments:/app/attachments # Binary file attachments
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5050;http://+:5060
+      - AgentHub__DataDirectory=/app/data
+      - AgentHub__AttachmentsDirectory=/app/attachments
+    restart: unless-stopped

@@ -45,7 +45,10 @@ nuget.config.local
 *.db
 *.db-shm
 *.db-wal
+data/
 attachments/
+host-data/
+host-attachments/
 
 # Publish output
 publish/

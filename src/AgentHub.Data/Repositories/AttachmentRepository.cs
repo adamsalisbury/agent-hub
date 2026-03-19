@@ -1,28 +1,31 @@
 using AgentHub.Core.Entities;
 using AgentHub.Core.Interfaces;
-using Microsoft.EntityFrameworkCore;
+using AgentHub.Data.JsonStore;
 
 namespace AgentHub.Data.Repositories;
 
-public class AttachmentRepository(AgentHubDbContext dbContext) : IAttachmentRepository
+public class AttachmentRepository(JsonFileStore<Attachment> store) : IAttachmentRepository
 {
     public async Task<Attachment?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await dbContext.Attachments.FindAsync([id], cancellationToken);
+        var attachments = await store.LoadAsync(cancellationToken);
+        return attachments.FirstOrDefault(a => a.Id == id);
     }
 
     public async Task<IReadOnlyList<Attachment>> GetByMessageIdAsync(Guid messageId, CancellationToken cancellationToken = default)
     {
-        return await dbContext.Attachments
+        var attachments = await store.LoadAsync(cancellationToken);
+        return attachments
             .Where(a => a.MessageId == messageId)
             .OrderBy(a => a.UploadedAt)
-            .ToListAsync(cancellationToken);
+            .ToList();
     }
 
     public async Task<Attachment> CreateAsync(Attachment attachment, CancellationToken cancellationToken = default)
     {
-        dbContext.Attachments.Add(attachment);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        var attachments = await store.LoadAsync(cancellationToken);
+        attachments.Add(attachment);
+        await store.SaveAsync(attachments, cancellationToken);
         return attachment;
     }
 }

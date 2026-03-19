@@ -2,14 +2,15 @@ using AgentHub.Api.Endpoints;
 using AgentHub.Api.Services;
 using AgentHub.Core.Interfaces;
 using AgentHub.Data;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Data Source=agent-hub.db";
-builder.Services.AddAgentHubData(connectionString);
+// JSON file-backed data store
+var dataDirectory = builder.Configuration["AgentHub:DataDirectory"] ?? "data";
+builder.Services.AddAgentHubData(options =>
+{
+    options.DataDirectory = dataDirectory;
+});
 
 // Attachment storage
 builder.Services.AddSingleton<IAttachmentStorageService, AttachmentStorageService>();
@@ -34,21 +35,12 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Run migrations on startup
-using (var scope = app.Services.CreateScope())
+// Always enable Swagger (useful in containers too)
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    var db = scope.ServiceProvider.GetRequiredService<AgentHubDbContext>();
-    await db.Database.MigrateAsync();
-}
-
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Agent Hub API v1");
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Agent Hub API v1");
+});
 
 app.UseStaticFiles();
 app.UseRouting();

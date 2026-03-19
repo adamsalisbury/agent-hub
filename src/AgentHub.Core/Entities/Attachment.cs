@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace AgentHub.Core.Entities;
 
 public class Attachment
@@ -10,5 +12,6 @@ public class Attachment
     public string StoragePath { get; set; } = string.Empty;
     public DateTimeOffset UploadedAt { get; set; }
 
+    [JsonIgnore]
     public Message Message { get; set; } = null!;
 }

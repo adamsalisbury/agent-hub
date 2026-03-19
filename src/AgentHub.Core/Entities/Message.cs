@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace AgentHub.Core.Entities;
 
 public class Message
@@ -12,7 +14,12 @@ public class Message
     public DateTimeOffset SentAt { get; set; }
     public DateTimeOffset? ReadAt { get; set; }
 
+    [JsonIgnore]
     public Agent Sender { get; set; } = null!;
+
+    [JsonIgnore]
     public Agent? Recipient { get; set; }
+
+    [JsonIgnore]
     public ICollection<Attachment> Attachments { get; set; } = [];
 }

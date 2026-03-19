@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace AgentHub.Core.Entities;
 
 public class Agent
@@ -10,6 +12,9 @@ public class Agent
     public AgentStatus Status { get; set; }
     public bool IsSystemAgent { get; set; }
 
+    [JsonIgnore]
     public ICollection<Message> SentMessages { get; set; } = [];
+
+    [JsonIgnore]
     public ICollection<Message> ReceivedMessages { get; set; } = [];
 }
