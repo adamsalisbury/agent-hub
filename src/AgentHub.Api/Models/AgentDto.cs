@@ -7,15 +7,21 @@ public record AgentDto(
     string Status,
     DateTimeOffset CreatedAt,
     DateTimeOffset? LastCheckedInAt,
-    bool IsSystemAgent
+    bool IsSystemAgent,
+    string? AvatarSvg,
+    string? JobTitle
 );
 
 public record CreateAgentRequest(
     string Name,
-    string Description
+    string Description,
+    string? AvatarSvg = null,
+    string? JobTitle = null
 );
 
 public record UpdateAgentRequest(
     string Name,
-    string Description
+    string Description,
+    string? AvatarSvg = null,
+    string? JobTitle = null
 );

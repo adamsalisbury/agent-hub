@@ -20,7 +20,9 @@ public class DashboardController(IAgentRepository agentRepository) : Controller
                 Description = a.Description,
                 Status = AgentStatusService.ComputeStatus(a.LastCheckedInAt),
                 LastCheckedInAt = a.LastCheckedInAt,
-                IsSystemAgent = a.IsSystemAgent
+                IsSystemAgent = a.IsSystemAgent,
+                AvatarSvg = a.AvatarSvg,
+                JobTitle = a.JobTitle
             }).ToList()
         };
 

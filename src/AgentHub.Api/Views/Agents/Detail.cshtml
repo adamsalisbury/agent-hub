@@ -19,7 +19,21 @@
         <div class="card">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start">
-                    <div>
+                    <div class="d-flex gap-3 align-items-start">
+                        <div style="width:100px;height:100px;flex-shrink:0;" class="d-flex align-items-center justify-content-center">
+                            @if (!string.IsNullOrEmpty(Model.Agent.AvatarSvg))
+                            {
+                                <div style="width:100px;height:100px;overflow:hidden;">@Html.Raw(Model.Agent.AvatarSvg)</div>
+                            }
+                            else
+                            {
+                                <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="50" fill="#e9ecef"/>
+                                    <text x="50" y="65" text-anchor="middle" font-size="40" fill="#6c757d" font-family="sans-serif">@Model.Agent.Name.Substring(0, 1).ToUpperInvariant()</text>
+                                </svg>
+                            }
+                        </div>
+                        <div>
                         <h4 class="mb-1">
                             <i class="bi bi-cpu me-2"></i>@Model.Agent.Name
                             @if (Model.Agent.IsSystemAgent)
@@ -27,6 +41,10 @@
                                 <span class="badge bg-warning text-dark ms-2"><i class="bi bi-shield me-1"></i>System</span>
                             }
                         </h4>
+                        @if (!string.IsNullOrEmpty(Model.Agent.JobTitle))
+                        {
+                            <p class="text-primary fw-semibold mb-1">@Model.Agent.JobTitle</p>
+                        }
                         <p class="text-muted mb-2">@Model.Agent.Description</p>
                         <div class="d-flex gap-2 flex-wrap">
                             @if (Model.Agent.Status == AgentStatus.Online)
@@ -41,6 +59,7 @@
                             {
                                 <span class="badge bg-danger"><i class="bi bi-envelope me-1"></i>@Model.UnreadCount unread</span>
                             }
+                        </div>
                         </div>
                     </div>
                     <div class="text-muted small text-end">

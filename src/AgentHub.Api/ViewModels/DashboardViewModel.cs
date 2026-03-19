@@ -17,4 +17,6 @@ public class AgentSummaryViewModel
     public AgentStatus Status { get; set; }
     public DateTimeOffset? LastCheckedInAt { get; set; }
     public bool IsSystemAgent { get; set; }
+    public string? AvatarSvg { get; set; }
+    public string? JobTitle { get; set; }
 }

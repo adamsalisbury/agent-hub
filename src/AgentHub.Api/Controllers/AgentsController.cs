@@ -28,7 +28,9 @@ public class AgentsController(
                 Description = agent.Description,
                 Status = AgentStatusService.ComputeStatus(agent.LastCheckedInAt),
                 LastCheckedInAt = agent.LastCheckedInAt,
-                IsSystemAgent = agent.IsSystemAgent
+                IsSystemAgent = agent.IsSystemAgent,
+                AvatarSvg = agent.AvatarSvg,
+                JobTitle = agent.JobTitle
             },
             Inbox = inbox.Select(m => new MessageSummaryViewModel
             {
@@ -59,7 +61,9 @@ public class AgentsController(
                 Description = a.Description,
                 Status = AgentStatusService.ComputeStatus(a.LastCheckedInAt),
                 LastCheckedInAt = a.LastCheckedInAt,
-                IsSystemAgent = a.IsSystemAgent
+                IsSystemAgent = a.IsSystemAgent,
+                AvatarSvg = a.AvatarSvg,
+                JobTitle = a.JobTitle
             }).ToList()
         };
 
@@ -68,7 +72,7 @@ public class AgentsController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(string name, string description, CancellationToken cancellationToken)
+    public async Task<IActionResult> Register(string name, string description, string? avatarSvg, string? jobTitle, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -89,7 +93,9 @@ public class AgentsController(
             Name = name,
             Description = description ?? string.Empty,
             CreatedAt = DateTimeOffset.UtcNow,
-            Status = AgentStatus.Offline
+            Status = AgentStatus.Offline,
+            AvatarSvg = avatarSvg,
+            JobTitle = jobTitle
         };
 
         await agentRepository.CreateAsync(agent, cancellationToken);

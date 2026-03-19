@@ -16,7 +16,9 @@ public static class AgentMappingExtensions
             Status: computedStatus.ToString().ToLowerInvariant(),
             CreatedAt: agent.CreatedAt,
             LastCheckedInAt: agent.LastCheckedInAt,
-            IsSystemAgent: agent.IsSystemAgent
+            IsSystemAgent: agent.IsSystemAgent,
+            AvatarSvg: agent.AvatarSvg,
+            JobTitle: agent.JobTitle
         );
     }
 }

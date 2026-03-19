@@ -45,7 +45,9 @@ public static class AgentEndpoints
                 Name = request.Name,
                 Description = request.Description,
                 CreatedAt = DateTimeOffset.UtcNow,
-                Status = AgentStatus.Offline
+                Status = AgentStatus.Offline,
+                AvatarSvg = request.AvatarSvg,
+                JobTitle = request.JobTitle
             };
 
             var created = await repository.CreateAsync(agent, cancellationToken);
@@ -75,6 +77,8 @@ public static class AgentEndpoints
 
             agent.Name = request.Name;
             agent.Description = request.Description;
+            agent.AvatarSvg = request.AvatarSvg;
+            agent.JobTitle = request.JobTitle;
 
             var updated = await repository.UpdateAsync(agent, cancellationToken);
             return Results.Ok(updated.ToDto());
@@ -109,6 +113,25 @@ public static class AgentEndpoints
         })
         .WithName("AgentCheckIn")
         .WithSummary("Agent heartbeat check-in");
+
+        group.MapGet("/{id:guid}/avatar", async (Guid id, IAgentRepository repository, CancellationToken cancellationToken) =>
+        {
+            var agent = await repository.GetByIdAsync(id, cancellationToken);
+            if (agent is null || string.IsNullOrEmpty(agent.AvatarSvg))
+                return Results.NotFound();
+
+            return Results.Content(agent.AvatarSvg, "image/svg+xml");
+        })
+        .WithName("GetAgentAvatar")
+        .WithSummary("Get the agent's avatar SVG");
+
+        group.MapGet("/by-name/{name}", async (string name, IAgentRepository repository, CancellationToken cancellationToken) =>
+        {
+            var agent = await repository.GetByNameAsync(name, cancellationToken);
+            return agent is null ? Results.NotFound() : Results.Ok(agent.ToDto());
+        })
+        .WithName("GetAgentByName")
+        .WithSummary("Get an agent by name");
 
         return group;
     }
