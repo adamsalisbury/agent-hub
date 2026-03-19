@@ -95,7 +95,13 @@
     <div class="col">
         <ul class="nav nav-tabs mb-3" id="mailboxTabs">
             <li class="nav-item">
-                <a class="nav-link active" data-bs-toggle="tab" href="#inbox">
+                <a class="nav-link active" data-bs-toggle="tab" href="#conversation">
+                    <i class="bi bi-chat-dots me-1"></i>Conversation
+                    <span class="badge bg-secondary ms-1">@Model.Conversation.Count</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#inbox">
                     <i class="bi bi-inbox me-1"></i>Inbox
                     @if (Model.UnreadCount > 0)
                     {
@@ -116,7 +122,63 @@
         </ul>
 
         <div class="tab-content">
-            <div class="tab-pane fade show active" id="inbox">
+            <div class="tab-pane fade show active" id="conversation">
+                @if (!Model.Conversation.Any())
+                {
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-chat-dots fs-1 d-block mb-2"></i>
+                        No messages yet.
+                    </div>
+                }
+                else
+                {
+                    <div class="d-flex flex-column gap-2 p-3">
+                        @foreach (var msg in Model.Conversation)
+                        {
+                            <div class="d-flex @(msg.IsOutgoing ? "justify-content-end" : "justify-content-start")">
+                                <div class="card" style="max-width:70%;">
+                                    <div class="card-body py-2 px-3 @(msg.IsOutgoing ? "bg-primary text-white" : "bg-light")">
+                                        <div class="d-flex justify-content-between align-items-center gap-3 mb-1">
+                                            <small class="fw-semibold">
+                                                @if (msg.IsOutgoing)
+                                                {
+                                                    <span>To: @(msg.RecipientName ?? (msg.IsBroadcast ? "All" : "Unknown"))</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>From: @msg.SenderName</span>
+                                                }
+                                            </small>
+                                            <small class="@(msg.IsOutgoing ? "text-white-50" : "text-muted")">@msg.SentAt.ToLocalTime().ToString("g")</small>
+                                        </div>
+                                        <div class="fw-semibold small">@msg.Subject</div>
+                                        @if (msg.AttachmentCount > 0)
+                                        {
+                                            <div class="mt-1">
+                                                <small class="@(msg.IsOutgoing ? "text-white-50" : "text-muted")">
+                                                    <i class="bi bi-paperclip me-1"></i>@msg.AttachmentCount attachment(s)
+                                                </small>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="card-footer py-1 px-3 d-flex gap-2">
+                                        <a asp-controller="Messages" asp-action="View" asp-route-id="@msg.Id"
+                                           class="btn btn-sm btn-outline-secondary py-0">
+                                            <i class="bi bi-eye me-1"></i>View
+                                        </a>
+                                        @if (!msg.IsOutgoing && !msg.IsRead)
+                                        {
+                                            <span class="badge bg-warning text-dark align-self-center">Unread</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="tab-pane fade" id="inbox">
                 <div class="card">
                     <div class="card-body p-0">
                         @if (!Model.Inbox.Any())

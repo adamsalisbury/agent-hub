@@ -58,12 +58,22 @@
                         <span asp-validation-for="Subject" class="text-danger small"></span>
                     </div>
 
+                    @if (Model.InReplyToMessageId.HasValue)
+                    {
+                        <input type="hidden" name="InReplyToMessageId" value="@Model.InReplyToMessageId" />
+                        <div class="mb-3">
+                            <div class="alert alert-secondary py-2 mb-0">
+                                <i class="bi bi-reply me-1"></i>In reply to: <em>@Model.InReplyToSubject</em>
+                            </div>
+                        </div>
+                    }
+
                     <div class="mb-3">
-                        <label asp-for="Body" class="form-label">Body (JSON) <span class="text-danger">*</span></label>
-                        <textarea asp-for="Body" class="form-control font-monospace" rows="10"
-                                  placeholder='{"key": "value"}'></textarea>
+                        <label asp-for="Body" class="form-label">Body <span class="text-danger">*</span></label>
+                        <textarea asp-for="Body" class="form-control" rows="10"
+                                  placeholder="Type your message here..."></textarea>
                         <span asp-validation-for="Body" class="text-danger small"></span>
-                        <div class="form-text">Message body must be valid JSON.</div>
+                        <div class="form-text">Message body can be plain text or JSON.</div>
                     </div>
 
                     <div class="d-flex gap-2">
@@ -84,7 +94,7 @@
             <div class="card-header"><h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Tips</h6></div>
             <div class="card-body">
                 <ul class="mb-0 small text-muted">
-                    <li class="mb-2">Message body must be a valid JSON object or array.</li>
+                    <li class="mb-2">Message body can be plain text or JSON — type naturally or paste structured data.</li>
                     <li class="mb-2">Select "All Agents (Broadcast)" to send to every registered agent.</li>
                     <li class="mb-2">Use the <strong>System</strong> agent as sender when sending from the human operator.</li>
                     <li>After sending, you can attach files from the message view page.</li>
@@ -94,26 +104,3 @@
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        // Validate JSON on submit
-        document.querySelector('form').addEventListener('submit', function(e) {
-            const bodyField = document.getElementById('Body');
-            if (bodyField && bodyField.value.trim()) {
-                try {
-                    JSON.parse(bodyField.value);
-                } catch (err) {
-                    e.preventDefault();
-                    bodyField.classList.add('is-invalid');
-                    let feedback = bodyField.nextElementSibling;
-                    if (!feedback || !feedback.classList.contains('invalid-feedback')) {
-                        feedback = document.createElement('div');
-                        feedback.className = 'invalid-feedback';
-                        bodyField.after(feedback);
-                    }
-                    feedback.textContent = 'Body must be valid JSON: ' + err.message;
-                }
-            }
-        });
-    </script>
-}

@@ -43,7 +43,7 @@ public class MessagesController(
         return View(viewModel);
     }
 
-    public async Task<IActionResult> Send(Guid? fromAgentId, CancellationToken cancellationToken)
+    public async Task<IActionResult> Send(Guid? fromAgentId, Guid? inReplyToMessageId, CancellationToken cancellationToken)
     {
         var agents = await agentRepository.GetAllAsync(cancellationToken);
         var viewModel = new SendMessageViewModel
@@ -57,6 +57,21 @@ public class MessagesController(
                 IsSystemAgent = a.IsSystemAgent
             }).ToList()
         };
+
+        if (inReplyToMessageId.HasValue)
+        {
+            var originalMessage = await messageRepository.GetByIdAsync(inReplyToMessageId.Value, cancellationToken);
+            if (originalMessage is not null)
+            {
+                viewModel.InReplyToMessageId = inReplyToMessageId;
+                viewModel.InReplyToSubject = originalMessage.Subject;
+                viewModel.Subject = originalMessage.Subject.StartsWith("Re: ", StringComparison.OrdinalIgnoreCase)
+                    ? originalMessage.Subject
+                    : $"Re: {originalMessage.Subject}";
+                viewModel.ToAgentId = originalMessage.SenderId.ToString();
+            }
+        }
+
         return View(viewModel);
     }
 
@@ -103,7 +118,8 @@ public class MessagesController(
             Body = model.Body,
             IsBroadcast = isBroadcast,
             IsRead = false,
-            SentAt = DateTimeOffset.UtcNow
+            SentAt = DateTimeOffset.UtcNow,
+            InReplyToMessageId = model.InReplyToMessageId
         };
 
         var created = await messageRepository.CreateAsync(message, cancellationToken);
