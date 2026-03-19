@@ -5,7 +5,7 @@ using AgentHub.Cli;
 var hubUrlOption = new Option<string>(
     "--hub-url",
     description: "Agent Hub base URL (overrides AGENT_HUB_URL environment variable)",
-    getDefaultValue: () => Environment.GetEnvironmentVariable("AGENT_HUB_URL") ?? "http://localhost:5000");
+    getDefaultValue: () => Environment.GetEnvironmentVariable("AGENT_HUB_URL") ?? "http://localhost:5050");
 
 var prettyOption = new Option<bool>(
     "--pretty",
@@ -44,15 +44,19 @@ agentsListCommand.SetHandler(async (hubUrl, pretty) =>
 var agentsRegisterCommand = new Command("register", "Register a new agent");
 var registerNameOption = new Option<string>("--name", "Agent name") { IsRequired = true };
 var registerDescriptionOption = new Option<string>("--description", "Agent description") { IsRequired = true };
+var registerJobTitleOption = new Option<string?>("--job-title", "Agent job title (optional)");
+var registerAvatarSvgOption = new Option<string?>("--avatar-svg", "Agent avatar as inline SVG (optional)");
 agentsRegisterCommand.AddOption(registerNameOption);
 agentsRegisterCommand.AddOption(registerDescriptionOption);
+agentsRegisterCommand.AddOption(registerJobTitleOption);
+agentsRegisterCommand.AddOption(registerAvatarSvgOption);
 agentsCommand.AddCommand(agentsRegisterCommand);
-agentsRegisterCommand.SetHandler(async (hubUrl, pretty, name, description) =>
+agentsRegisterCommand.SetHandler(async (hubUrl, pretty, name, description, jobTitle, avatarSvg) =>
 {
     try
     {
         var client = CreateClient(hubUrl);
-        var result = await client.RegisterAgentAsync(name, description);
+        var result = await client.RegisterAgentAsync(name, description, jobTitle, avatarSvg);
         OutputFormatter.WriteSuccess(result, pretty);
     }
     catch (Exception ex)
@@ -60,7 +64,7 @@ agentsRegisterCommand.SetHandler(async (hubUrl, pretty, name, description) =>
         OutputFormatter.WriteError(ex.Message, pretty);
         Environment.Exit(1);
     }
-}, hubUrlOption, prettyOption, registerNameOption, registerDescriptionOption);
+}, hubUrlOption, prettyOption, registerNameOption, registerDescriptionOption, registerJobTitleOption, registerAvatarSvgOption);
 
 // agents checkin
 var agentsCheckinCommand = new Command("checkin", "Send a heartbeat check-in for an agent");
@@ -196,17 +200,19 @@ var sendFromOption = new Option<Guid>("--from", "Sender agent ID") { IsRequired 
 var sendToOption = new Option<string>("--to", "Recipient agent ID or 'all' for broadcast") { IsRequired = true };
 var sendSubjectOption = new Option<string>("--subject", "Message subject") { IsRequired = true };
 var sendBodyOption = new Option<string>("--body", "Message body as JSON string") { IsRequired = true };
+var sendReplyToOption = new Option<Guid?>("--reply-to", "Message ID this is a reply to (optional)");
 messagesSendCommand.AddOption(sendFromOption);
 messagesSendCommand.AddOption(sendToOption);
 messagesSendCommand.AddOption(sendSubjectOption);
 messagesSendCommand.AddOption(sendBodyOption);
+messagesSendCommand.AddOption(sendReplyToOption);
 messagesCommand.AddCommand(messagesSendCommand);
-messagesSendCommand.SetHandler(async (hubUrl, pretty, from, to, subject, body) =>
+messagesSendCommand.SetHandler(async (hubUrl, pretty, from, to, subject, body, replyTo) =>
 {
     try
     {
         var client = CreateClient(hubUrl);
-        var result = await client.SendMessageAsync(from, to, subject, body);
+        var result = await client.SendMessageAsync(from, to, subject, body, replyTo);
         OutputFormatter.WriteSuccess(result, pretty);
     }
     catch (Exception ex)
@@ -214,7 +220,7 @@ messagesSendCommand.SetHandler(async (hubUrl, pretty, from, to, subject, body) =
         OutputFormatter.WriteError(ex.Message, pretty);
         Environment.Exit(1);
     }
-}, hubUrlOption, prettyOption, sendFromOption, sendToOption, sendSubjectOption, sendBodyOption);
+}, hubUrlOption, prettyOption, sendFromOption, sendToOption, sendSubjectOption, sendBodyOption, sendReplyToOption);
 
 // messages inbox
 var messagesInboxCommand = new Command("inbox", "Get inbox messages for an agent");

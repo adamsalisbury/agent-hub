@@ -31,9 +31,14 @@ public class HubApiClient
         return await GetJsonAsync("api/agents", cancellationToken);
     }
 
-    public async Task<JsonElement> RegisterAgentAsync(string name, string description, CancellationToken cancellationToken = default)
+    public async Task<JsonElement> RegisterAgentAsync(
+        string name,
+        string description,
+        string? jobTitle = null,
+        string? avatarSvg = null,
+        CancellationToken cancellationToken = default)
     {
-        var payload = new { name, description };
+        var payload = new { name, description, jobTitle, avatarSvg };
         return await PostJsonAsync("api/agents", payload, cancellationToken);
     }
 
@@ -92,9 +97,10 @@ public class HubApiClient
         string toAgentId,
         string subject,
         string body,
+        Guid? inReplyToMessageId = null,
         CancellationToken cancellationToken = default)
     {
-        var payload = new { fromAgentId, toAgentId, subject, body };
+        var payload = new { fromAgentId, toAgentId, subject, body, inReplyToMessageId };
         return await PostJsonAsync("api/messages", payload, cancellationToken);
     }
 
