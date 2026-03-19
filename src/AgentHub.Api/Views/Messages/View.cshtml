@@ -79,9 +79,19 @@
                     }
                 </div>
 
+                @if (Model.InReplyToMessageId.HasValue)
+                {
+                    <div class="alert alert-secondary py-2 mb-3">
+                        <i class="bi bi-reply me-1"></i>In reply to:
+                        <a asp-controller="Messages" asp-action="View" asp-route-id="@Model.InReplyToMessageId">
+                            <em>@(Model.InReplyToSubject ?? "original message")</em>
+                        </a>
+                    </div>
+                }
+
                 <hr />
 
-                <h6 class="text-muted mb-2">Message Body (JSON)</h6>
+                <h6 class="text-muted mb-2">Message Body</h6>
                 <pre class="json-body">@Model.Body</pre>
             </div>
         </div>
@@ -128,6 +138,15 @@
     </div>
 
     <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body d-flex flex-column gap-2">
+                <a asp-controller="Messages" asp-action="Send"
+                   asp-route-inReplyToMessageId="@Model.Id"
+                   class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-reply me-1"></i>Reply
+                </a>
+            </div>
+        </div>
         <div class="card">
             <div class="card-header"><h6 class="mb-0">Message Info</h6></div>
             <div class="card-body">

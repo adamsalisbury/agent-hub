@@ -13,6 +13,7 @@ public class Message
     public bool IsRead { get; set; }
     public DateTimeOffset SentAt { get; set; }
     public DateTimeOffset? ReadAt { get; set; }
+    public Guid? InReplyToMessageId { get; set; }
 
     [JsonIgnore]
     public Agent Sender { get; set; } = null!;

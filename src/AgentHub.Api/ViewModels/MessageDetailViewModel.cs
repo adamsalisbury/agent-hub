@@ -14,6 +14,8 @@ public class MessageDetailViewModel
     public DateTimeOffset SentAt { get; set; }
     public DateTimeOffset? ReadAt { get; set; }
     public IReadOnlyList<AttachmentViewModel> Attachments { get; set; } = [];
+    public Guid? InReplyToMessageId { get; set; }
+    public string? InReplyToSubject { get; set; }
 }
 
 public class AttachmentViewModel

@@ -19,7 +19,8 @@ public static class MessageMappingExtensions
             IsRead: message.IsRead,
             SentAt: message.SentAt,
             ReadAt: message.ReadAt,
-            Attachments: message.Attachments.Select(a => a.ToDto()).ToList()
+            Attachments: message.Attachments.Select(a => a.ToDto()).ToList(),
+            InReplyToMessageId: message.InReplyToMessageId
         );
     }
 

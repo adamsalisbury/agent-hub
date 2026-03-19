@@ -88,7 +88,8 @@ public static class MessageEndpoints
                 Body = request.Body,
                 IsBroadcast = isBroadcast,
                 IsRead = false,
-                SentAt = DateTimeOffset.UtcNow
+                SentAt = DateTimeOffset.UtcNow,
+                InReplyToMessageId = request.InReplyToMessageId
             };
 
             var created = await messageRepository.CreateAsync(message, cancellationToken);

@@ -16,6 +16,13 @@ public class MessagesController(
         var message = await messageRepository.GetByIdAsync(id, cancellationToken);
         if (message is null) return NotFound();
 
+        string? inReplyToSubject = null;
+        if (message.InReplyToMessageId.HasValue)
+        {
+            var originalMessage = await messageRepository.GetByIdAsync(message.InReplyToMessageId.Value, cancellationToken);
+            inReplyToSubject = originalMessage?.Subject;
+        }
+
         var viewModel = new MessageDetailViewModel
         {
             Id = message.Id,
@@ -37,7 +44,9 @@ public class MessagesController(
                 ContentType = a.ContentType,
                 FileSizeBytes = a.FileSizeBytes,
                 UploadedAt = a.UploadedAt
-            }).ToList()
+            }).ToList(),
+            InReplyToMessageId = message.InReplyToMessageId,
+            InReplyToSubject = inReplyToSubject
         };
 
         return View(viewModel);

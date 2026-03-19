@@ -12,14 +12,16 @@ public record MessageDto(
     bool IsRead,
     DateTimeOffset SentAt,
     DateTimeOffset? ReadAt,
-    IReadOnlyList<AttachmentDto> Attachments
+    IReadOnlyList<AttachmentDto> Attachments,
+    Guid? InReplyToMessageId
 );
 
 public record SendMessageRequest(
     Guid FromAgentId,
     string ToAgentId,  // agent Guid or "all" for broadcast
     string Subject,
-    string Body        // JSON string
+    string Body,       // plain text or JSON
+    Guid? InReplyToMessageId = null
 );
 
 public record AttachmentDto(
