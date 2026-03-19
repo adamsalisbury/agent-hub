@@ -1,0 +1,119 @@
+@model SendMessageViewModel
+@{
+    ViewData["Title"] = "Send Message";
+}
+
+<div class="row mb-3">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item active">Send Message</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-send me-2"></i>Compose Message</h5>
+            </div>
+            <div class="card-body">
+                <form asp-controller="Messages" asp-action="Send" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label asp-for="FromAgentId" class="form-label">From <span class="text-danger">*</span></label>
+                        <select asp-for="FromAgentId" class="form-select">
+                            <option value="">-- Select sender --</option>
+                            @foreach (var agent in Model.Agents)
+                            {
+                                <option value="@agent.Id" selected="@(agent.Id == Model.FromAgentId)">
+                                    @agent.Name @(agent.IsSystemAgent ? "(System)" : "")
+                                </option>
+                            }
+                        </select>
+                        <span asp-validation-for="FromAgentId" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="toAgentId" class="form-label">To <span class="text-danger">*</span></label>
+                        <select class="form-select" id="toAgentId" name="ToAgentId">
+                            <option value="">-- Select recipient --</option>
+                            <option value="all">All Agents (Broadcast)</option>
+                            @foreach (var agent in Model.Agents)
+                            {
+                                <option value="@agent.Id">
+                                    @agent.Name @(agent.IsSystemAgent ? "(System)" : "")
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Subject" class="form-label">Subject <span class="text-danger">*</span></label>
+                        <input asp-for="Subject" class="form-control" placeholder="Message subject" />
+                        <span asp-validation-for="Subject" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Body" class="form-label">Body (JSON) <span class="text-danger">*</span></label>
+                        <textarea asp-for="Body" class="form-control font-monospace" rows="10"
+                                  placeholder='{"key": "value"}'></textarea>
+                        <span asp-validation-for="Body" class="text-danger small"></span>
+                        <div class="form-text">Message body must be valid JSON.</div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send me-1"></i>Send Message
+                        </button>
+                        <a asp-controller="Dashboard" asp-action="Index" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Tips</h6></div>
+            <div class="card-body">
+                <ul class="mb-0 small text-muted">
+                    <li class="mb-2">Message body must be a valid JSON object or array.</li>
+                    <li class="mb-2">Select "All Agents (Broadcast)" to send to every registered agent.</li>
+                    <li class="mb-2">Use the <strong>System</strong> agent as sender when sending from the human operator.</li>
+                    <li>After sending, you can attach files from the message view page.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Validate JSON on submit
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const bodyField = document.getElementById('Body');
+            if (bodyField && bodyField.value.trim()) {
+                try {
+                    JSON.parse(bodyField.value);
+                } catch (err) {
+                    e.preventDefault();
+                    bodyField.classList.add('is-invalid');
+                    let feedback = bodyField.nextElementSibling;
+                    if (!feedback || !feedback.classList.contains('invalid-feedback')) {
+                        feedback = document.createElement('div');
+                        feedback.className = 'invalid-feedback';
+                        bodyField.after(feedback);
+                    }
+                    feedback.textContent = 'Body must be valid JSON: ' + err.message;
+                }
+            }
+        });
+    </script>
+}

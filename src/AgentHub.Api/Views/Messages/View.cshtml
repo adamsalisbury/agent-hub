@@ -1,0 +1,183 @@
+@model MessageDetailViewModel
+@{
+    ViewData["Title"] = Model.Subject;
+}
+
+<div class="row mb-3">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+                <li class="breadcrumb-item active">Message</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    @if (!Model.IsRead)
+                    {
+                        <i class="bi bi-envelope-fill text-primary me-2"></i>
+                    }
+                    else
+                    {
+                        <i class="bi bi-envelope-open text-muted me-2"></i>
+                    }
+                    @Model.Subject
+                </h5>
+                @if (!Model.IsRead)
+                {
+                    <form asp-controller="Messages" asp-action="MarkRead" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-check2 me-1"></i>Mark as Read
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <span class="badge bg-success"><i class="bi bi-check2 me-1"></i>Read</span>
+                }
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">From</small>
+                        <a asp-controller="Agents" asp-action="Detail" asp-route-id="@Model.SenderId">
+                            <strong>@Model.SenderName</strong>
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">To</small>
+                        @if (Model.IsBroadcast)
+                        {
+                            <span class="badge bg-info text-dark"><i class="bi bi-broadcast me-1"></i>All Agents (Broadcast)</span>
+                        }
+                        else if (Model.RecipientId.HasValue)
+                        {
+                            <a asp-controller="Agents" asp-action="Detail" asp-route-id="@Model.RecipientId">
+                                <strong>@(Model.RecipientName ?? "Unknown")</strong>
+                            </a>
+                        }
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">Sent</small>
+                        <span>@Model.SentAt.ToLocalTime().ToString("f")</span>
+                    </div>
+                    @if (Model.ReadAt.HasValue)
+                    {
+                        <div class="col-md-6">
+                            <small class="text-muted d-block">Read</small>
+                            <span>@Model.ReadAt.Value.ToLocalTime().ToString("f")</span>
+                        </div>
+                    }
+                </div>
+
+                <hr />
+
+                <h6 class="text-muted mb-2">Message Body (JSON)</h6>
+                <pre class="json-body">@Model.Body</pre>
+            </div>
+        </div>
+
+        @if (Model.Attachments.Any())
+        {
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-paperclip me-2"></i>Attachments (@Model.Attachments.Count)</h6>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>File Name</th>
+                                <th>Type</th>
+                                <th>Size</th>
+                                <th>Uploaded</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var attachment in Model.Attachments)
+                            {
+                                <tr>
+                                    <td><i class="bi bi-file-earmark me-2"></i>@attachment.FileName</td>
+                                    <td class="text-muted small">@attachment.ContentType</td>
+                                    <td class="text-muted small">@attachment.FormattedFileSize</td>
+                                    <td class="text-muted small">@attachment.UploadedAt.ToLocalTime().ToString("g")</td>
+                                    <td>
+                                        <a asp-controller="Messages" asp-action="DownloadAttachment"
+                                           asp-route-messageId="@Model.Id" asp-route-attachmentId="@attachment.Id"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-download me-1"></i>Download
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header"><h6 class="mb-0">Message Info</h6></div>
+            <div class="card-body">
+                <dl class="mb-0">
+                    <dt class="small text-muted">Message ID</dt>
+                    <dd><code class="small">@Model.Id</code></dd>
+
+                    <dt class="small text-muted">Status</dt>
+                    <dd>
+                        @if (Model.IsRead)
+                        {
+                            <span class="badge bg-success">Read</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-warning text-dark">Unread</span>
+                        }
+                    </dd>
+
+                    <dt class="small text-muted">Type</dt>
+                    <dd>
+                        @if (Model.IsBroadcast)
+                        {
+                            <span class="badge bg-info text-dark">Broadcast</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Direct</span>
+                        }
+                    </dd>
+
+                    @if (Model.Attachments.Any())
+                    {
+                        <dt class="small text-muted">Attachments</dt>
+                        <dd>@Model.Attachments.Count file(s)</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Pretty-print JSON body if valid
+        document.querySelectorAll('pre.json-body').forEach(el => {
+            try {
+                const parsed = JSON.parse(el.textContent);
+                el.textContent = JSON.stringify(parsed, null, 2);
+            } catch (e) { /* leave as-is if not valid JSON */ }
+        });
+    </script>
+}

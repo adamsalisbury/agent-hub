@@ -1,0 +1,224 @@
+using System.CommandLine;
+using AgentHub.Cli;
+
+// Global options
+var hubUrlOption = new Option<string>(
+    "--hub-url",
+    description: "Agent Hub base URL (overrides AGENT_HUB_URL environment variable)",
+    getDefaultValue: () => Environment.GetEnvironmentVariable("AGENT_HUB_URL") ?? "http://localhost:5000");
+
+var prettyOption = new Option<bool>(
+    "--pretty",
+    description: "Format output as pretty-printed JSON");
+
+HubApiClient CreateClient(string hubUrl) => new(hubUrl);
+
+// ── Root command ──────────────────────────────────────────────────────────────
+var rootCommand = new RootCommand("Agent Hub CLI - communicate with the Agent Hub system");
+rootCommand.AddGlobalOption(hubUrlOption);
+rootCommand.AddGlobalOption(prettyOption);
+
+// ── agents ───────────────────────────────────────────────────────────────────
+var agentsCommand = new Command("agents", "Manage agents");
+rootCommand.AddCommand(agentsCommand);
+
+// agents list
+var agentsListCommand = new Command("list", "List all registered agents");
+agentsCommand.AddCommand(agentsListCommand);
+agentsListCommand.SetHandler(async (hubUrl, pretty) =>
+{
+    try
+    {
+        var client = CreateClient(hubUrl);
+        var result = await client.GetAgentsAsync();
+        OutputFormatter.WriteSuccess(result, pretty);
+    }
+    catch (Exception ex)
+    {
+        OutputFormatter.WriteError(ex.Message, pretty);
+        Environment.Exit(1);
+    }
+}, hubUrlOption, prettyOption);
+
+// agents register
+var agentsRegisterCommand = new Command("register", "Register a new agent");
+var registerNameOption = new Option<string>("--name", "Agent name") { IsRequired = true };
+var registerDescriptionOption = new Option<string>("--description", "Agent description") { IsRequired = true };
+agentsRegisterCommand.AddOption(registerNameOption);
+agentsRegisterCommand.AddOption(registerDescriptionOption);
+agentsCommand.AddCommand(agentsRegisterCommand);
+agentsRegisterCommand.SetHandler(async (hubUrl, pretty, name, description) =>
+{
+    try
+    {
+        var client = CreateClient(hubUrl);
+        var result = await client.RegisterAgentAsync(name, description);
+        OutputFormatter.WriteSuccess(result, pretty);
+    }
+    catch (Exception ex)
+    {
+        OutputFormatter.WriteError(ex.Message, pretty);
+        Environment.Exit(1);
+    }
+}, hubUrlOption, prettyOption, registerNameOption, registerDescriptionOption);
+
+// agents checkin
+var agentsCheckinCommand = new Command("checkin", "Send a heartbeat check-in for an agent");
+var checkinIdOption = new Option<Guid>("--id", "Agent ID") { IsRequired = true };
+agentsCheckinCommand.AddOption(checkinIdOption);
+agentsCommand.AddCommand(agentsCheckinCommand);
+agentsCheckinCommand.SetHandler(async (hubUrl, pretty, id) =>
+{
+    try
+    {
+        var client = CreateClient(hubUrl);
+        var result = await client.CheckInAsync(id);
+        OutputFormatter.WriteSuccess(result, pretty);
+    }
+    catch (Exception ex)
+    {
+        OutputFormatter.WriteError(ex.Message, pretty);
+        Environment.Exit(1);
+    }
+}, hubUrlOption, prettyOption, checkinIdOption);
+
+// ── messages ──────────────────────────────────────────────────────────────────
+var messagesCommand = new Command("messages", "Manage messages");
+rootCommand.AddCommand(messagesCommand);
+
+// messages send
+var messagesSendCommand = new Command("send", "Send a message to an agent or broadcast to all");
+var sendFromOption = new Option<Guid>("--from", "Sender agent ID") { IsRequired = true };
+var sendToOption = new Option<string>("--to", "Recipient agent ID or 'all' for broadcast") { IsRequired = true };
+var sendSubjectOption = new Option<string>("--subject", "Message subject") { IsRequired = true };
+var sendBodyOption = new Option<string>("--body", "Message body as JSON string") { IsRequired = true };
+messagesSendCommand.AddOption(sendFromOption);
+messagesSendCommand.AddOption(sendToOption);
+messagesSendCommand.AddOption(sendSubjectOption);
+messagesSendCommand.AddOption(sendBodyOption);
+messagesCommand.AddCommand(messagesSendCommand);
+messagesSendCommand.SetHandler(async (hubUrl, pretty, from, to, subject, body) =>
+{
+    try
+    {
+        var client = CreateClient(hubUrl);
+        var result = await client.SendMessageAsync(from, to, subject, body);
+        OutputFormatter.WriteSuccess(result, pretty);
+    }
+    catch (Exception ex)
+    {
+        OutputFormatter.WriteError(ex.Message, pretty);
+        Environment.Exit(1);
+    }
+}, hubUrlOption, prettyOption, sendFromOption, sendToOption, sendSubjectOption, sendBodyOption);
+
+// messages inbox
+var messagesInboxCommand = new Command("inbox", "Get inbox messages for an agent");
+var inboxAgentOption = new Option<Guid>("--agent", "Agent ID") { IsRequired = true };
+var inboxAllOption = new Option<bool>("--all", "Include read messages");
+messagesInboxCommand.AddOption(inboxAgentOption);
+messagesInboxCommand.AddOption(inboxAllOption);
+messagesCommand.AddCommand(messagesInboxCommand);
+messagesInboxCommand.SetHandler(async (hubUrl, pretty, agentId, all) =>
+{
+    try
+    {
+        var client = CreateClient(hubUrl);
+        var result = await client.GetInboxAsync(agentId, all);
+        OutputFormatter.WriteSuccess(result, pretty);
+    }
+    catch (Exception ex)
+    {
+        OutputFormatter.WriteError(ex.Message, pretty);
+        Environment.Exit(1);
+    }
+}, hubUrlOption, prettyOption, inboxAgentOption, inboxAllOption);
+
+// messages outbox
+var messagesOutboxCommand = new Command("outbox", "Get sent messages for an agent");
+var outboxAgentOption = new Option<Guid>("--agent", "Agent ID") { IsRequired = true };
+messagesOutboxCommand.AddOption(outboxAgentOption);
+messagesCommand.AddCommand(messagesOutboxCommand);
+messagesOutboxCommand.SetHandler(async (hubUrl, pretty, agentId) =>
+{
+    try
+    {
+        var client = CreateClient(hubUrl);
+        var result = await client.GetOutboxAsync(agentId);
+        OutputFormatter.WriteSuccess(result, pretty);
+    }
+    catch (Exception ex)
+    {
+        OutputFormatter.WriteError(ex.Message, pretty);
+        Environment.Exit(1);
+    }
+}, hubUrlOption, prettyOption, outboxAgentOption);
+
+// messages read
+var messagesReadCommand = new Command("read", "Mark a message as read");
+var readMessageIdOption = new Option<Guid>("--id", "Message ID") { IsRequired = true };
+messagesReadCommand.AddOption(readMessageIdOption);
+messagesCommand.AddCommand(messagesReadCommand);
+messagesReadCommand.SetHandler(async (hubUrl, pretty, messageId) =>
+{
+    try
+    {
+        var client = CreateClient(hubUrl);
+        var result = await client.MarkReadAsync(messageId);
+        OutputFormatter.WriteSuccess(result, pretty);
+    }
+    catch (Exception ex)
+    {
+        OutputFormatter.WriteError(ex.Message, pretty);
+        Environment.Exit(1);
+    }
+}, hubUrlOption, prettyOption, readMessageIdOption);
+
+// messages attach
+var messagesAttachCommand = new Command("attach", "Attach a file to a message");
+var attachMessageIdOption = new Option<Guid>("--message", "Message ID") { IsRequired = true };
+var attachFileOption = new Option<string>("--file", "Path to the file to attach") { IsRequired = true };
+messagesAttachCommand.AddOption(attachMessageIdOption);
+messagesAttachCommand.AddOption(attachFileOption);
+messagesCommand.AddCommand(messagesAttachCommand);
+messagesAttachCommand.SetHandler(async (hubUrl, pretty, messageId, filePath) =>
+{
+    try
+    {
+        var client = CreateClient(hubUrl);
+        var result = await client.AttachFileAsync(messageId, filePath);
+        OutputFormatter.WriteSuccess(result, pretty);
+    }
+    catch (Exception ex)
+    {
+        OutputFormatter.WriteError(ex.Message, pretty);
+        Environment.Exit(1);
+    }
+}, hubUrlOption, prettyOption, attachMessageIdOption, attachFileOption);
+
+// messages attachment (download)
+var messagesDownloadCommand = new Command("attachment", "Download an attachment from a message");
+var downloadMessageIdOption = new Option<Guid>("--message", "Message ID") { IsRequired = true };
+var downloadAttachmentIdOption = new Option<Guid>("--attachment", "Attachment ID") { IsRequired = true };
+var downloadOutputOption = new Option<string>("--output", "Output file path") { IsRequired = true };
+messagesDownloadCommand.AddOption(downloadMessageIdOption);
+messagesDownloadCommand.AddOption(downloadAttachmentIdOption);
+messagesDownloadCommand.AddOption(downloadOutputOption);
+messagesCommand.AddCommand(messagesDownloadCommand);
+messagesDownloadCommand.SetHandler(async (hubUrl, pretty, messageId, attachmentId, outputPath) =>
+{
+    try
+    {
+        var client = CreateClient(hubUrl);
+        await client.DownloadAttachmentAsync(messageId, attachmentId, outputPath);
+        OutputFormatter.WriteMessage($"Attachment downloaded to {outputPath}", pretty);
+    }
+    catch (Exception ex)
+    {
+        OutputFormatter.WriteError(ex.Message, pretty);
+        Environment.Exit(1);
+    }
+}, hubUrlOption, prettyOption, downloadMessageIdOption, downloadAttachmentIdOption, downloadOutputOption);
+
+// Run
+return await rootCommand.InvokeAsync(args);

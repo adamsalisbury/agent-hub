@@ -1,0 +1,51 @@
+## .NET gitignore
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docview
+
+# Rider
+.idea/
+
+# Rider caches
+.idea/
+
+# Build results
+artifacts/
+
+# MSTest test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# NuGet
+*.nupkg
+*.[Nn]u[Gg]et.props
+*.[Nn]u[Gg]et.targets
+packages/
+nuget.config.local
+
+# Runtime data
+*.db
+*.db-shm
+*.db-wal
+attachments/
+
+# Publish output
+publish/
